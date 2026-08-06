@@ -607,7 +607,6 @@
 
 <div class="share-bar" id="shareBar">
   <span class="room-label">Sala: <strong id="roomCodeLabel"></strong></span>
-  <button id="shareBtn" class="share-btn">Compartir</button>
 </div>
 
 <div id="spinControls">
@@ -682,7 +681,6 @@ const toastEl = document.getElementById('toast');
 const lobbyEl = document.getElementById('lobby');
 const gameArea = document.getElementById('gameArea');
 const roomCodeLabel = document.getElementById('roomCodeLabel');
-const shareBtnEl = document.getElementById('shareBtn');
 const joinRoomBtn = document.getElementById('joinRoomBtn');
 const roomCodeInput = document.getElementById('roomCodeInput');
 const spinControls = document.getElementById('spinControls');
@@ -796,22 +794,6 @@ function updateSpinButton() {
 
 // --- Share ---
 
-function shareRoom() {
-  const url = window.location.origin + window.location.pathname + '?sala=' + roomCode;
-  if (navigator.share) {
-    navigator.share({
-      title: 'Club de Ahorro — Sorteo',
-      text: 'Unite al sorteo de turnos! Sala: ' + roomCode,
-      url: url,
-    }).catch(() => {});
-  } else {
-    navigator.clipboard.writeText(url).then(() => {
-      toast('Link copiado');
-    }).catch(() => {
-      toast('Sala: ' + roomCode);
-    });
-  }
-}
 
 function hasPlayed(name) {
   return players.some(p => p.name.toLowerCase() === name.toLowerCase());
@@ -837,11 +819,9 @@ function checkAlreadyPlayed() {
   const localName = getLocalPlayer();
   if (localName && hasPlayed(localName)) {
     spinControls.style.display = 'none';
-    shareBtnEl.parentElement.style.display = 'none';
   } else {
     if (localName && !hasPlayed(localName)) clearLocalPlayer();
     spinControls.style.display = '';
-    shareBtnEl.parentElement.style.display = '';
   }
 }
 
@@ -1161,7 +1141,6 @@ nameInput.addEventListener('keydown', e => {
   if (e.key === 'Enter') spin();
 });
 joinRoomBtn.addEventListener('click', joinRoom);
-shareBtnEl.addEventListener('click', shareRoom);
 roomCodeInput.addEventListener('keydown', e => {
   if (e.key === 'Enter') joinRoom();
 });
