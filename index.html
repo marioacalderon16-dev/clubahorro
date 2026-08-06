@@ -72,6 +72,43 @@
     user-select: none;
   }
 
+  .guide {
+    width: 100%;
+    max-width: 340px;
+    background: var(--bg-card);
+    border: 1.5px solid var(--accent);
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .guide.hidden { display: none; }
+
+  .guide-step {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: var(--text);
+  }
+
+  .guide-num {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--btn-text);
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
   .logo {
     width: 100px;
     height: 100px;
@@ -380,8 +417,14 @@
 <h1>Club de Ahorro</h1>
 <p class="tagline">Sorteo de turnos — gira las ruedas para definir tu posicion</p>
 
+<div class="guide" id="guide">
+  <div class="guide-step"><span class="guide-num">1</span> Escribe tu nombre abajo</div>
+  <div class="guide-step"><span class="guide-num">2</span> Toca el boton <strong>Girar</strong></div>
+  <div class="guide-step"><span class="guide-num">3</span> Las ruedas daran tu numero y posicion</div>
+</div>
+
 <div class="input-area">
-  <input type="text" id="nameInput" placeholder="Nombre del participante" maxlength="30" autocomplete="off" enterkeyhint="done">
+  <input type="text" id="nameInput" placeholder="Escribe tu nombre" maxlength="30" autocomplete="off" enterkeyhint="done">
 </div>
 
 <div class="machine">
@@ -430,6 +473,7 @@ const resultNum = document.getElementById('resultNum');
 const rankingList = document.getElementById('rankingList');
 const countLabel = document.getElementById('countLabel');
 const resetBtn = document.getElementById('resetBtn');
+const guideEl = document.getElementById('guide');
 const toastEl = document.getElementById('toast');
 
 // --- localStorage ---
@@ -680,6 +724,7 @@ function spin() {
     players.push({ name, score: finalNumber });
     players.sort((a, b) => b.score - a.score);
     saveState();
+    updateGuide();
 
     const position = players.findIndex(p => p.name === name && p.score === finalNumber) + 1;
     renderRanking();
@@ -760,10 +805,19 @@ nameInput.addEventListener('keydown', e => {
   if (e.key === 'Enter') spin();
 });
 
+function updateGuide() {
+  if (players.length > 0) {
+    guideEl.classList.add('hidden');
+  } else {
+    guideEl.classList.remove('hidden');
+  }
+}
+
 // Init
 loadState();
 players.sort((a, b) => b.score - a.score);
 renderRanking();
+updateGuide();
 if (players.length >= MAX_PLAYERS) {
   spinBtn.disabled = true;
 }
