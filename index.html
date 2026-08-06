@@ -837,9 +837,11 @@ function checkAlreadyPlayed() {
   const localName = getLocalPlayer();
   if (localName && hasPlayed(localName)) {
     spinControls.style.display = 'none';
+    shareBtnEl.parentElement.style.display = 'none';
   } else {
     if (localName && !hasPlayed(localName)) clearLocalPlayer();
     spinControls.style.display = '';
+    shareBtnEl.parentElement.style.display = '';
   }
 }
 
