@@ -610,6 +610,8 @@
   <button id="shareBtn" class="share-btn">Compartir</button>
 </div>
 
+<div id="spinControls">
+
 <div class="guide" id="guide">
   <div class="guide-step"><span class="guide-num">1</span> Escribe tu nombre abajo</div>
   <div class="guide-step"><span class="guide-num">2</span> Toca el boton <strong>Girar</strong></div>
@@ -638,6 +640,8 @@
   <div class="result-num" id="resultNum">---</div>
   <button class="spin-btn" id="spinBtn">Girar</button>
 </div>
+
+</div><!-- /spinControls -->
 
 <div class="ranking">
   <div class="ranking-header">
@@ -681,6 +685,7 @@ const roomCodeLabel = document.getElementById('roomCodeLabel');
 const shareBtnEl = document.getElementById('shareBtn');
 const joinRoomBtn = document.getElementById('joinRoomBtn');
 const roomCodeInput = document.getElementById('roomCodeInput');
+const spinControls = document.getElementById('spinControls');
 
 // --- Room management ---
 
@@ -707,6 +712,7 @@ async function enterGame() {
   renderRanking();
   updateGuide();
   updateSpinButton();
+  checkAlreadyPlayed();
 }
 
 // --- Supabase data ---
@@ -770,6 +776,7 @@ function subscribeToChanges() {
         renderRanking();
         updateSpinButton();
         updateGuide();
+        checkAlreadyPlayed();
       });
     })
     .subscribe();
@@ -808,6 +815,31 @@ function shareRoom() {
 
 function hasPlayed(name) {
   return players.some(p => p.name.toLowerCase() === name.toLowerCase());
+}
+
+function getLocalPlayer() {
+  try {
+    const data = JSON.parse(localStorage.getItem('sorteo_player') || '{}');
+    if (data.room === roomCode) return data.name;
+  } catch(e) {}
+  return null;
+}
+
+function setLocalPlayer(name) {
+  localStorage.setItem('sorteo_player', JSON.stringify({ room: roomCode, name }));
+}
+
+function clearLocalPlayer() {
+  localStorage.removeItem('sorteo_player');
+}
+
+function checkAlreadyPlayed() {
+  const localName = getLocalPlayer();
+  if (localName && hasPlayed(localName)) {
+    spinControls.style.display = 'none';
+  } else {
+    spinControls.style.display = '';
+  }
 }
 
 // --- Canvas reels ---
@@ -1045,6 +1077,7 @@ function spin() {
       players.sort((a, b) => b.score - a.score);
     }
 
+    setLocalPlayer(name);
     updateGuide();
     const position = players.findIndex(p => p.name === name && p.score === finalNumber) + 1;
     renderRanking();
@@ -1054,11 +1087,11 @@ function spin() {
       toast('Sorteo completo');
     } else {
       toast(`${name} quedo en posicion ${position}`);
-      nameInput.focus();
     }
 
     spinning = false;
     updateSpinButton();
+    checkAlreadyPlayed();
   });
 }
 
