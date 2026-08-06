@@ -12,6 +12,8 @@
     --accent: #7cb62f;
     --accent-glow: rgba(124, 182, 47, 0.3);
     --btn-text: #ffffff;
+    --red: #e05252;
+    --yellow: #e0a830;
   }
 
   :root[data-theme="light"] {
@@ -24,6 +26,8 @@
     --accent: #5a9a1a;
     --accent-glow: rgba(90, 154, 26, 0.15);
     --btn-text: #ffffff;
+    --red: #c0392b;
+    --yellow: #b8860b;
   }
 
   @media (prefers-color-scheme: light) {
@@ -37,6 +41,8 @@
       --accent: #5a9a1a;
       --accent-glow: rgba(90, 154, 26, 0.15);
       --btn-text: #ffffff;
+      --red: #c0392b;
+      --yellow: #b8860b;
     }
   }
 
@@ -68,21 +74,22 @@
   .tagline {
     font-size: 12px;
     color: var(--text-dim);
-    margin-bottom: 32px;
+    margin-bottom: 24px;
     text-align: center;
   }
 
   .card {
     width: 100%;
-    max-width: 340px;
+    max-width: 380px;
     background: var(--bg-card);
     border: 1.5px solid var(--border);
     border-radius: 16px;
-    padding: 24px 20px;
+    padding: 20px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 16px;
+    gap: 14px;
+    margin-bottom: 16px;
   }
 
   .btn {
@@ -120,12 +127,12 @@
   }
 
   .room-code {
-    font-size: 40px;
+    font-size: 36px;
     font-weight: 800;
     letter-spacing: 0.3em;
     color: var(--accent);
     text-align: center;
-    padding: 12px 0;
+    padding: 8px 0;
     font-family: 'Menlo', 'Courier New', monospace;
   }
 
@@ -141,6 +148,113 @@
     text-align: center;
     word-break: break-all;
     line-height: 1.4;
+  }
+
+  .section-title {
+    width: 100%;
+    max-width: 380px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+    margin-top: 8px;
+  }
+
+  .room-list {
+    width: 100%;
+    max-width: 380px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .room-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+  }
+
+  .room-row-code {
+    font-family: 'Menlo', 'Courier New', monospace;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    min-width: 80px;
+  }
+
+  .room-row-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .room-row-count {
+    font-size: 13px;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .room-row-date {
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  .room-row-actions {
+    display: flex;
+    gap: 6px;
+  }
+
+  .action-btn {
+    padding: 6px 10px;
+    border: none;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.15s, opacity 0.2s;
+  }
+
+  .action-btn:active { transform: scale(0.94); }
+
+  .action-btn.reset {
+    background: var(--yellow);
+    color: #fff;
+  }
+
+  .action-btn.delete {
+    background: var(--red);
+    color: #fff;
+  }
+
+  .action-btn.share {
+    background: var(--accent);
+    color: var(--btn-text);
+  }
+
+  .empty-msg {
+    font-size: 13px;
+    color: var(--text-dim);
+    text-align: center;
+    padding: 20px;
+  }
+
+  .badge-complete {
+    font-size: 10px;
+    font-weight: 700;
+    background: var(--accent);
+    color: var(--btn-text);
+    padding: 2px 6px;
+    border-radius: 4px;
+    text-transform: uppercase;
   }
 
   .toast {
@@ -168,41 +282,35 @@
 <h1>Club de Ahorro</h1>
 <p class="tagline">Panel de administrador</p>
 
-<div class="card" id="createView">
-  <p class="label">Crea una sala para iniciar un nuevo sorteo</p>
+<div class="card">
   <button class="btn primary" id="createBtn">Nueva Sala</button>
 </div>
 
 <div class="card" id="roomView" style="display:none">
   <p class="label">Sala creada</p>
-  <div class="room-code" id="roomCode"></div>
-  <div class="link-box" id="roomLink"></div>
+  <div class="room-code" id="newRoomCode"></div>
+  <div class="link-box" id="newRoomLink"></div>
   <button class="btn primary" id="shareBtn">Compartir Link</button>
   <button class="btn secondary" id="goBtn">Ir al Sorteo</button>
-  <button class="btn secondary" id="newBtn">Crear Otra Sala</button>
+</div>
+
+<div class="section-title">Salas creadas</div>
+<div class="room-list" id="roomList">
+  <p class="empty-msg">Cargando...</p>
 </div>
 
 <div class="toast" id="toast"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-function generateRoomCode() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let code = '';
-  for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
-  return code;
-}
+const SUPABASE_URL = 'https://mdjbitptifpxmkmhttne.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kamJpdHB0aWZweG1rbWh0dG5lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYwMjYzNzcsImV4cCI6MjEwMTYwMjM3N30.b0toWlVc27NBN9eR-BTVaoaXlcuiBCo39-bvKr-sdig';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-function getGameLink(code) {
-  const base = window.location.href.replace(/admin\.html.*$/, 'index.html');
-  return base + '?sala=' + code;
-}
-
-let currentCode = null;
-
-const createView = document.getElementById('createView');
 const roomView = document.getElementById('roomView');
-const roomCodeEl = document.getElementById('roomCode');
-const roomLinkEl = document.getElementById('roomLink');
+const newRoomCodeEl = document.getElementById('newRoomCode');
+const newRoomLinkEl = document.getElementById('newRoomLink');
+const roomListEl = document.getElementById('roomList');
 const toastEl = document.getElementById('toast');
 
 let toastTimeout;
@@ -213,42 +321,160 @@ function toast(msg) {
   toastTimeout = setTimeout(() => toastEl.classList.remove('show'), 2500);
 }
 
-function createRoom() {
-  currentCode = generateRoomCode();
-  roomCodeEl.textContent = currentCode;
-  roomLinkEl.textContent = getGameLink(currentCode);
-  createView.style.display = 'none';
-  roomView.style.display = '';
+function generateRoomCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  return code;
 }
 
-function shareRoom() {
-  const url = getGameLink(currentCode);
+function getGameLink(code) {
+  return window.location.href.replace(/admin\.html.*$/, 'index.html') + '?sala=' + code;
+}
+
+function escapeHtml(str) {
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+function formatDate(iso) {
+  const d = new Date(iso);
+  return d.toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+// --- Create room ---
+
+let lastCreatedCode = null;
+
+async function createRoom() {
+  const code = generateRoomCode();
+  const { error } = await sb.from('sorteo_rooms').insert({ code });
+  if (error) {
+    if (error.code === '23505') {
+      createRoom();
+      return;
+    }
+    toast('Error al crear sala');
+    console.error(error);
+    return;
+  }
+  lastCreatedCode = code;
+  newRoomCodeEl.textContent = code;
+  newRoomLinkEl.textContent = getGameLink(code);
+  roomView.style.display = '';
+  toast('Sala ' + code + ' creada');
+  loadRooms();
+}
+
+function shareRoom(code) {
+  const url = getGameLink(code || lastCreatedCode);
+  const c = code || lastCreatedCode;
   if (navigator.share) {
     navigator.share({
       title: 'Club de Ahorro — Sorteo',
-      text: 'Unite al sorteo de turnos! Sala: ' + currentCode,
+      text: 'Unite al sorteo de turnos! Sala: ' + c,
       url: url,
     }).catch(() => {});
   } else {
     navigator.clipboard.writeText(url).then(() => {
       toast('Link copiado');
     }).catch(() => {
-      toast('Sala: ' + currentCode);
+      toast('Sala: ' + c);
     });
   }
 }
 
-function goToGame() {
-  window.location.href = getGameLink(currentCode);
+// --- List rooms ---
+
+async function loadRooms() {
+  const { data: rooms, error } = await sb
+    .from('sorteo_rooms')
+    .select('code, created_at')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    roomListEl.innerHTML = '<p class="empty-msg">Error al cargar salas</p>';
+    console.error(error);
+    return;
+  }
+
+  if (!rooms || rooms.length === 0) {
+    roomListEl.innerHTML = '<p class="empty-msg">No hay salas creadas</p>';
+    return;
+  }
+
+  const { data: counts } = await sb
+    .from('sorteo_players')
+    .select('room_code');
+
+  const countMap = {};
+  if (counts) {
+    counts.forEach(p => {
+      countMap[p.room_code] = (countMap[p.room_code] || 0) + 1;
+    });
+  }
+
+  let html = '';
+  rooms.forEach(room => {
+    const count = countMap[room.code] || 0;
+    const complete = count >= 10;
+    html += `<div class="room-row">
+      <div class="room-row-code">${escapeHtml(room.code)}</div>
+      <div class="room-row-info">
+        <div class="room-row-count">${count} / 10 ${complete ? '<span class="badge-complete">Completo</span>' : ''}</div>
+        <div class="room-row-date">${formatDate(room.created_at)}</div>
+      </div>
+      <div class="room-row-actions">
+        <button class="action-btn share" onclick="shareRoom('${room.code}')">Link</button>
+        <button class="action-btn reset" onclick="resetRoom('${room.code}')">Reset</button>
+        <button class="action-btn delete" onclick="deleteRoom('${room.code}')">Eliminar</button>
+      </div>
+    </div>`;
+  });
+
+  roomListEl.innerHTML = html;
 }
 
-function createAnother() {
-  createRoom();
-  toast('Nueva sala creada');
+// --- Reset / Delete ---
+
+async function resetRoom(code) {
+  if (!confirm('Restablecer posiciones de la sala ' + code + '? Se borran todos los jugadores.')) return;
+  const { error } = await sb.from('sorteo_players').delete().eq('room_code', code);
+  if (error) {
+    toast('Error al restablecer');
+    console.error(error);
+    return;
+  }
+  toast('Sala ' + code + ' restablecida');
+  loadRooms();
 }
+
+async function deleteRoom(code) {
+  if (!confirm('Eliminar la sala ' + code + '? Esta accion no se puede deshacer.')) return;
+  await sb.from('sorteo_players').delete().eq('room_code', code);
+  const { error } = await sb.from('sorteo_rooms').delete().eq('code', code);
+  if (error) {
+    toast('Error al eliminar');
+    console.error(error);
+    return;
+  }
+  toast('Sala ' + code + ' eliminada');
+  if (lastCreatedCode === code) {
+    roomView.style.display = 'none';
+    lastCreatedCode = null;
+  }
+  loadRooms();
+}
+
+// --- Events ---
 
 document.getElementById('createBtn').addEventListener('click', createRoom);
-document.getElementById('shareBtn').addEventListener('click', shareRoom);
-document.getElementById('goBtn').addEventListener('click', goToGame);
-document.getElementById('newBtn').addEventListener('click', createAnother);
+document.getElementById('shareBtn').addEventListener('click', () => shareRoom());
+document.getElementById('goBtn').addEventListener('click', () => {
+  if (lastCreatedCode) window.location.href = getGameLink(lastCreatedCode);
+});
+
+// --- Init ---
+loadRooms();
 </script>
